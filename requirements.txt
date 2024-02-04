@@ -1,0 +1,12 @@
+langchain
+pandas
+openai
+streamlit
+python-dotenv
+tiktoken
+streamlit-chat
+pypdf
+joblib
+pinecone-client
+pypdf2
+scikit-learn
