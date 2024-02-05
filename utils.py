@@ -4,6 +4,9 @@ from langchain.docstore.document import Document
 from langchain.embeddings.sentence_transformer import SentenceTransformerEmbeddings
 from langchain.vectorstores.pinecone import Pinecone
 from pinecone import Pinecone as pc, PodSpec
+from langchain.chains.summarize import load_summarize_chain
+from langchain.llms import OpenAI
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 
 def extract_text(pdf_file):
@@ -57,6 +60,11 @@ def get_docs_from_pinecone(query,num_count,embeddings,u_id):
   return index.similarity_search_with_score(query,int(num_count),{'unique_id':u_id})
 
 
-
+def get_summary(rel_doc):
+  ts=RecursiveCharacterTextSplitter(chunk_size=1000,chunk_overlap=20)
+  chunk_doc=ts.split_documents([rel_doc[0]])
+  chain=load_summarize_chain(OpenAI(),chain_type='map_reduce',verbose=True)
+  summary=chain.run(chunk_doc)
+  return summary
 
 
