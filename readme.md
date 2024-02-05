@@ -1,8 +1,8 @@
-# Project HR-Asistance-Tool
+# Project HR-Resume Screening Assistance
 
 ## Introduction
 
-In this project, we will explore an automatic ticket classification tool that can help categorize and assign tickets based on user queries. The tool uses natural language processing techniques to analyze user queries and classify them into different categories such as HR, IT, or TRANS (Transportation).
+we have a Streamlit application that assists in the screening of resumes for HR purposes. The application allows users to upload job descriptions and resumes in PDF format, and then performs an analysis to retrieve relevant resumes based on the job description.
 
 ## Installation & create environment
 
@@ -60,99 +60,91 @@ Pinecone: Pinecone is a vector database that allows fast and efficient similarit
 
 ### Detailed Explanation:
 
-app.py
-This code is a script that creates a Streamlit application for an automatic ticket classification tool.
+This code is a Streamlit application that assists in resume screening for HR purposes.
 
-First, it imports the necessary modules: `user_utils` from the `utils` package, `streamlit`, and `load_dotenv` from the `dotenv` package.
+First, the necessary libraries are imported: `streamlit`, `dotenv`, `uuid`, `utils`, and `time`.
 
-Then, it calls the `load_dotenv()` function to load any environment variables from a `.env` file.
+The `st.session_state` is used to store a unique key for each session. If the key does not exist in the session state, it is initialized as an empty string.
 
-Next, it checks if the keys `'HR_tickets'`, `'IT_tickets'`, and `'TRANS_tickets'` are not already present in the `st.session_state` dictionary. If any of these keys are not present, it initializes them with empty lists.
+The `main()` function is defined, which is the entry point of the application.
 
-After that, it defines the `main()` function, which is the entry point of the script.
+The page configuration is set using `st.set_page_config()`, specifying the page title as "hr-asist-tool".
 
-Inside the `main()` function, it sets the page configuration for the Streamlit app and displays a header and a text input field for the user to enter their query.
+The title and subheader of the application are displayed using `st.title()` and `st.subheader()`.
 
-If the user enters a query, the following steps are executed:
+The `load_dotenv()` function is called to load any environment variables from a .env file.
 
-1. It calls the `get_embedding()` function to get an instance of the embedding model.
-2. It calls the `get_index()` function to get the index from the Pinecone service.
-3. It calls the `get_relevant_docs()` function to get the relevant documents from the index based on the user's query.
-4. It calls the `get_llm_ans()` function to get the answer from the Language Model based on the relevant documents and the user's query.
-5. It displays the answer to the user.
-6. It displays a button labeled "Raise ticket?".
-7. If the user clicks the button, the following steps are executed:
-   - It calls the `get_embedding()` function again to get an instance of the embedding model.
-   - It calls the `embed_query()` method of the embedding model to embed the user's query.
-   - It calls the `predict()` function to predict the ticket category based on the embedded query.
-   - It displays a message indicating the assigned ticket category.
-   - It appends the user's query to the corresponding ticket category list in the `st.session_state` dictionary based on the predicted category.
+A text area is displayed using `st.text_area()` to allow the user to paste the job description.
 
-Finally, it checks if the script is being run directly (i.e., not imported as a module) and calls the `main()` function if it is.
+A text input is displayed using `st.text_input()` to allow the user to enter the number of resumes to return.
 
-user_utils.py
-The code provided is a Python script that imports several modules and defines several functions. Let's go through each part of the code and explain what it does.
+A file uploader is displayed using `st.file_uploader()` to allow the user to upload PDF files. Only PDF files are allowed.
 
-First, the code imports the following modules:
+A button is displayed using `st.button()` with the label "Help me with the analysis".
 
-- `SentenceTransformerEmbeddings` from `langchain.embeddings.sentence_transformer`
-- `Pinecone` from `langchain.vectorstores`
-- `load_qa_chain` from `langchain.chains.question_answering`
-- `OpenAI` from `langchain.llms`
-- `joblib`
+When the button is clicked, the code inside the `if button:` block is executed.
 
-Next, the code defines a function called `get_embedding()`. This function returns an instance of the `SentenceTransformerEmbeddings` class with the model name set to `'all-MiniLM-L6-V2'`. This function is used to get the sentence embeddings for the input text.
+A spinner is displayed using `st.spinner()` with the message "Wait for it........".
 
-The next function defined is `get_index(embedding)`. This function takes an `embedding` parameter and returns an instance of the `Pinecone` class with the index name set to `'pdf-store'`. The `Pinecone` class is used for similarity search on the embeddings.
+A unique key is generated using `uuid4().hex` and stored in the session state.
 
-The next function defined is `get_relevant_docs(index, query, k=2)`. This function takes an `index`, `query`, and an optional `k` parameter (default value is 2). It performs a similarity search on the `index` using the `query` and returns the top `k` most similar documents.
+The `create_docs()` function is called with the uploaded files and the unique key to create document objects.
 
-The next function defined is `get_llm_ans(docs, query)`. This function takes `docs` and `query` parameters. It loads a question answering chain using the `load_qa_chain` function with an instance of the `OpenAI` class and the chain type set to `'map_reduce'`. It then runs the chain with the input documents set to `docs` and the question set to `query`. The function returns the result of the chain execution.
+A message is displayed using `st.write()` to indicate that the documents are being created.
 
-The last function defined is `predict(query)`. This function takes a `query` parameter. It loads a model from a file called `'./models/model_1.pkl'` using the `joblib.load()` function. It then uses the loaded model to predict the result for the input `query` and returns the result.
+The `get_embeddings()` function is called to get the embeddings of the documents.
 
-Overall, this code defines several functions that can be used for various natural language processing tasks such as getting sentence embeddings, performing similarity search, running question answering chains, and making predictions using a pre-trained model.
+A message is displayed to indicate that the embeddings are being retrieved.
 
-admin_utils.py
-Loading the Documents
-The first part of the code focuses on loading the text documents that we want to classify. It uses the PyPDF2 library to extract text from PDF files. The read_pdf function takes a PDF file as input and returns a Document object that contains the extracted text.
+The `store_to_pinecone()` function is called to store the documents and embeddings in Pinecone.
 
-Next, the chunking function splits the document into smaller chunks of text. This is done to improve the efficiency of the embedding process and to handle long documents. The RecursiveCharacterTextSplitter class is used for this purpose.
+A message is displayed to indicate that the documents are being stored.
 
-The get_embeddings function initializes the SentenceTransformer model, which is a pre-trained model for generating sentence embeddings. Sentence embeddings are used to represent chunks of text in a numerical format.
+A delay of 20 seconds is added using `time.sleep()` to simulate a processing time.
 
-Finally, the store_embeddings function stores the embeddings of the chunked text in the Pinecone vector store. It creates a new index if it doesn't exist or deletes the existing index and creates a new one.
+The `get_docs_from_pinecone()` function is called to retrieve relevant documents based on the job description, number of resumes to return, embeddings, and unique key.
 
-Model Training
-The second part of the code focuses on training the text classification model. It starts with the read_csv_file function, which reads a CSV file containing the training data. The CSV file should have two columns: "Query" and "Class". The "Query" column contains the text data, and the "Class" column contains the corresponding class labels.
+A message is displayed to indicate that the relevant documents are being retrieved.
 
-The function performs some preprocessing steps, such as balancing the number of samples for each class and generating embeddings for the text data using the embed object.
+The `get_summary()` function is called to get a summary of each relevant document.
 
-Next, the train_model function splits the data into training and testing sets and trains a support vector machine (SVM) model using the StandardScaler for feature scaling. The model is returned along with the testing data.
+A success message is displayed using `st.success()`.
 
-Finally, the get_score function calculates the accuracy score of the trained model on the testing data.
+A loop is used to iterate over each relevant document.
+
+The name and score of the document are displayed using `st.write()`.
+
+An expander is used to show the summary of the document when expanded.
+
+The `if __name__=='__main__':` block is used to ensure that the `main()` function is only executed when the script is run directly, not when it is imported as a module.
+
+extract_text(pdf_file): This function takes a PDF file as input and uses PyPDF2 to extract the text from the file. It returns the extracted text as a string.
+
+create_docs(pdf_list, unique_id): This function takes a list of PDF files and a unique ID as input. It iterates over the PDF files, extracts the text using extract_text(), and creates a Document object for each file. The Document object includes the page content and metadata. The function returns a list of Document objects.
+
+get_embeddings(): This function initializes and returns a SentenceTransformerEmbeddings object. The object is used to generate sentence embeddings for documents.
+
+store_to_pinecone(docs, embeddings): This function takes a list of Document objects and a SentenceTransformerEmbeddings object as input. It creates a Pinecone index (if it doesn't exist) and stores the document embeddings in the index.
+
+get_docs_from_pinecone(query, num_count, embeddings, u_id): This function takes a query string, the number of documents to retrieve, a SentenceTransformerEmbeddings object, and a unique ID as input. It retrieves the most similar documents to the query from the Pinecone index based on their embeddings. The function returns the retrieved documents along with their similarity scores.
+
+get_summary(rel_doc): This function takes a relevant document (returned by get_docs_from_pinecone()) as input. It splits the document into smaller chunks using a text splitter, and then generates a summary of the document using a summarization chain based on OpenAI's language model.
 
 ## libraries
 
 ```
 import streamlit as st
-from dotenv import load_dotenv
-import joblib
-from langchain.embeddings.sentence_transformer import SentenceTransformerEmbeddings
-from langchain.vectorstores import Pinecone
-from pinecone import Pinecone as pc ,PodSpec
-from langchain.docstore.document import Document
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 import PyPDF2
-import pandas as pd
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler
-from sklearn.svm import SVC
-from sklearn.model_selection import train_test_split
-from langchain.chains.question_answering import load_qa_chain
+from langchain.docstore.document import Document
+from langchain.embeddings.sentence_transformer import SentenceTransformerEmbeddings
+from langchain.vectorstores.pinecone import Pinecone
+from pinecone import Pinecone as pc, PodSpec
+from langchain.chains.summarize import load_summarize_chain
 from langchain.llms import OpenAI
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+
 ```
 
 ## Conclusion
 
-we explored an automatic ticket classification tool that can help categorize and assign tickets based on user queries. The tool uses natural language processing techniques, embeddings, and Pinecone for efficient ticket classification and assignment. By automating this process, organizations can streamline their ticket management and improve customer support efficiency.
+we have explained the code for an HR Assistant application. The code includes functions for extracting text from PDF files, creating document objects, storing documents in a vector store, retrieving documents based on a query, and generating summaries of documents. By understanding this code, you can build and customize your own HR Assistant application to streamline your HR processes.
